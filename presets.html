@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SynthiMaster v1.0 – Preset | Bocaletto Luca</title>
+  
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&family=Open+Sans:ital,wght@1,400&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container text-center">
+      <h1>Preset Sounds</h1>
+      <h4>SynthiMaster v1.0</h4>
+    </div>
+  </header>
+  
+  <!-- SEZIONE PRESET -->
+  <main class="container my-4">
+    <div class="row">
+      
+      <!-- Esempio di Preset -->
+      <div class="col-md-4">
+        <div class="card effect-card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Bright Lead</h5>
+            <p class="card-text">Sintesi con onda sawtooth, attack rapido e decay medio, ideale per lead squillanti.</p>
+            <button class="btn btn-primary preset-load" data-preset='{"osc":"sawtooth","attack":0.01,"decay":0.3,"sustain":0.6,"release":0.4,"cutoff":1500}'>
+              <i class="fas fa-music"></i> Carica
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card effect-card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Deep Bass</h5>
+            <p class="card-text">Preset per bassi potenti con onda sine e envelope più lunghi.</p>
+            <button class="btn btn-primary preset-load" data-preset='{"osc":"sine","attack":0.05,"decay":0.4,"sustain":0.7,"release":0.5,"cutoff":800}'>
+              <i class="fas fa-music"></i> Carica
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card effect-card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Ambient Pad</h5>
+            <p class="card-text">Configurazione per suoni ambientali, con attack lento e sustain lungo.</p>
+            <button class="btn btn-primary preset-load" data-preset='{"osc":"triangle","attack":0.5,"decay":1,"sustain":0.8,"release":1.5,"cutoff":1200}'>
+              <i class="fas fa-music"></i> Carica
+            </button>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </main>
+  
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container text-center">
+      <p>&copy; <span id="copyrightYear">
+      </span> Bocaletto Luca - Tutti i diritti riservati</p>
+      <div class="mt-2">
+        <a href="index.html" class="btn btn-link">Home</a>
+        <a href="synth.html" class="btn btn-link">Sintetizzatore</a>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Script per aggiornare l'anno -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function(){
+      document.getElementById("copyrightYear")
+              .textContent = new Date().getFullYear();
+    });
+  </script>
+  <!-- Script per la gestione dei preset -->
+  <script>
+    // In una versione completa, questi dati andrebbero trasmessi a synth.js via localStorage o query string.
+    // Qui simuliamo il caricamento impostando i valori dei controlli in synth.html.
+    document.querySelectorAll('.preset-load').forEach(function(button){
+      button.addEventListener('click', function(){
+        const preset = JSON.parse(this.getAttribute('data-preset'));
+        // Salva il preset in localStorage (oppure genera un evento personalizzato)
+        localStorage.setItem('synthPreset', JSON.stringify(preset));
+        // Reindirizza alla pagina del sintetizzatore per applicare il preset
+        window.location.href = "synth.html?preset=1";
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SynthiMaster v1.0 – Sequencer | Bocaletto Luca</title>
+  
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&family=Open+Sans:ital,wght@1,400&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Stili specifici per la pagina del sequencer */
+    .sequencer-grid {
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      gap: 4px;
+    }
+    .sequencer-cell {
+      background: #ccc;
+      border: 1px solid #aaa;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .sequencer-cell.active {
+      background: #f90;
+      border-color: #e68a00;
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container text-center">
+      <h1>Sequencer</h1>
+      <h4>SynthiMaster v1.0</h4>
+      <p>Costruisci e riproduci pattern ritmici in tempo reale!</p>
+    </div>
+  </header>
+
+  <!-- MAIN SEZIONE -->
+  <main class="container my-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header text-center">
+            <h5>Step Sequencer</h5>
+          </div>
+          <div class="card-body">
+            <!-- Griglia del sequencer: 16 step -->
+            <div id="sequencerGrid" class="sequencer-grid mb-3">
+              <!-- All'inizio tutti gli step sono inattivi; li generiamo staticamente per semplicità -->
+              <!-- I div hanno l'attributo data-step per identificare il numero dello step (0-15) -->
+              <div class="sequencer-cell" data-step="0"></div>
+              <div class="sequencer-cell" data-step="1"></div>
+              <div class="sequencer-cell" data-step="2"></div>
+              <div class="sequencer-cell" data-step="3"></div>
+              <div class="sequencer-cell" data-step="4"></div>
+              <div class="sequencer-cell" data-step="5"></div>
+              <div class="sequencer-cell" data-step="6"></div>
+              <div class="sequencer-cell" data-step="7"></div>
+              <div class="sequencer-cell" data-step="8"></div>
+              <div class="sequencer-cell" data-step="9"></div>
+              <div class="sequencer-cell" data-step="10"></div>
+              <div class="sequencer-cell" data-step="11"></div>
+              <div class="sequencer-cell" data-step="12"></div>
+              <div class="sequencer-cell" data-step="13"></div>
+              <div class="sequencer-cell" data-step="14"></div>
+              <div class="sequencer-cell" data-step="15"></div>
+            </div>
+            <!-- Controlli per il sequencer -->
+            <div class="d-flex align-items-center justify-content-center gap-3">
+              <div>
+                <label for="tempoRange" class="form-label">
+                  Tempo (<span id="tempoVal">120</span> BPM)
+                </label>
+                <input type="range" id="tempoRange" min="60" max="200" value="120" class="form-range">
+              </div>
+              <button id="playSequencer" class="btn btn-success">
+                <i class="fas fa-play"></i> Play
+              </button>
+              <button id="stopSequencer" class="btn btn-danger">
+                <i class="fas fa-stop"></i> Stop
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container text-center">
+      <p>&copy; <span id="copyrightYear"></span>
+         Bocaletto Luca - Tutti i diritti riservati</p>
+      <div class="mt-2">
+        <a href="index.html" class="btn btn-link">Home</a>
+        <a href="synth.html" class="btn btn-link">Sintetizzatore</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Tone.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
+  <!-- Script Sequencer -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function(){
+      // Aggiorna il copyright
+      document.getElementById("copyrightYear")
+              .textContent = new Date().getFullYear();
+
+      // Crea un semplice kick drum synth per questo sequencer
+      const kickSynth = new Tone.MembraneSynth({
+        envelope: { attack: 0.001, decay: 0.3, sustain: 0 }
+      }).toDestination();
+
+      // Array per mantenere lo stato di ogni step (16-step sequencer)
+      const steps = new Array(16).fill(false);
+
+      // Assegna funzionalità alle celle della griglia (toggle stato on/off)
+      const cells = document.querySelectorAll('.sequencer-cell');
+      cells.forEach(cell => {
+        cell.addEventListener('click', function(){
+          const step = parseInt(this.getAttribute('data-step'));
+          // Alterna lo stato: se è attivo lo disattiva, altrimenti lo attiva
+          steps[step] = !steps[step];
+          this.classList.toggle('active');
+        });
+      });
+
+      // Crea una Tone.Sequence per elaborare 16 step in loop
+      const seq = new Tone.Sequence((time, step) => {
+        // Se lo step corrente è attivato, suona il kick drum
+        if(steps[step]) {
+          kickSynth.triggerAttackRelease("C2", "8n", time);
+        }
+      }, Array.from({length: 16}, (_, i) => i), "16n");
+
+      // Gestione del controllo BPM tramite il range input
+      const tempoRange = document.getElementById('tempoRange');
+      const tempoVal = document.getElementById('tempoVal');
+      tempoRange.addEventListener('input', function(){
+        Tone.Transport.bpm.value = parseInt(this.value);
+        tempoVal.textContent = this.value;
+      });
+      // Imposta il BPM iniziale
+      Tone.Transport.bpm.value = parseInt(tempoRange.value);
+
+      // Azioni dei pulsanti Play e Stop
+      document.getElementById('playSequencer').addEventListener('click', async function(){
+        // Tone.start() attende una prima interazione dell'utente
+        await Tone.start();
+        Tone.Transport.start();
+        seq.start();
+      });
+
+      document.getElementById('stopSequencer').addEventListener('click', function(){
+        Tone.Transport.stop();
+        seq.stop();
+      });
+    });
+  </script>
+</body>
+</html>

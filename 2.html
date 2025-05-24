@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SynthiMaster v1.0 – Advanced App | Bocaletto Luca</title>
+  
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&family=Open+Sans:ital,wght@1,400&display=swap" rel="stylesheet">
+
+  <!-- Stili Personalizzati -->
+  <style>
+    /* ----- GLOBAL STYLES ----- */
+    body {
+      background: #f2f2f2;
+      font-family: 'Open Sans', sans-serif;
+      margin: 0;
+      padding-bottom: 120px; /* spazio per il footer fisso */
+    }
+    /* HEADER */
+    .site-header {
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      color: #fff;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .site-header h1 {
+      font-family: 'Roboto', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      text-shadow: 4px 4px 0 rgba(0,0,0,0.2), 8px 8px 0 rgba(0,0,0,0.15);
+      transform: perspective(500px) rotateX(2deg) rotateY(2deg);
+    }
+    .site-header h4 { font-size: 1.5rem; margin-bottom: 0; }
+    /* NAV TABS */
+    .nav-tabs { margin-bottom: 20px; }
+    /* ----- SYNTH SECTION ----- */
+    .control-group { margin-bottom: 15px; }
+    .control-group label { font-weight: bold; }
+    .control-panel { margin-bottom: 20px; }
+    /* Tastiera Virtuale */
+    .keyboard-container {
+      margin-top: 20px;
+      text-align: center;
+    }
+    #virtualKeyboard {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 10px;
+    }
+    #virtualKeyboard .key {
+      width: 50px;
+      height: 150px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    #virtualKeyboard .key.active { background-color: #ffec99; }
+    /* ----- PRESET SECTION ----- */
+    .preset-card { margin-bottom: 20px; }
+    /* ----- SEQUENCER SECTION ----- */
+    .sequencer-grid {
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      gap: 4px;
+    }
+    .sequencer-cell {
+      background: #ccc;
+      border: 1px solid #aaa;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .sequencer-cell.active {
+      background: #f90;
+      border-color: #e68a00;
+    }
+    /* Dropdown e controlli sequencer */
+    .sequencer-controls { margin-top: 15px; }
+    /* FOOTER */
+    .site-footer {
+      background: #222;
+      color: #fff;
+      padding: 15px 0;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      z-index: 1000;
+      text-align: center;
+    }
+    /* Responsive */
+    @media (max-width:768px){
+      #virtualKeyboard .key { width: 40px; height: 120px; }
+      .site-header h1 { font-size: 2.5rem; }
+      .site-header h4 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container">
+      <h1>SynthiMaster v1.0</h1>
+      <h4>Dalla creatività alla musica</h4>
+    </div>
+  </header>
+  
+  <!-- NAV TABS PER LE SEZIONI -->
+  <div class="container my-3">
+    <ul class="nav nav-tabs" id="appTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="synthTabBtn" data-bs-toggle="tab" data-bs-target="#synthTabContent" type="button" role="tab" aria-controls="synthTabContent" aria-selected="true">
+          Synth
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="presetTabBtn" data-bs-toggle="tab" data-bs-target="#presetTabContent" type="button" role="tab" aria-controls="presetTabContent" aria-selected="false">
+          Preset
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="seqTabBtn" data-bs-toggle="tab" data-bs-target="#seqTabContent" type="button" role="tab" aria-controls="seqTabContent" aria-selected="false">
+          Sequencer
+        </button>
+      </li>
+    </ul>
+    <div class="tab-content" id="appTabContent">
+      <!-- Synth Tab -->
+      <div class="tab-pane fade show active" id="synthTabContent" role="tabpanel" aria-labelledby="synthTabBtn">
+        <div class="container my-4">
+          <!-- Pannello controlli avanzati -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header">
+              <h5>Controlli Avanzati del Sintetizzatore</h5>
+            </div>
+            <div class="card-body control-panel">
+              <div class="row">
+                <!-- Sezione Oscillatori: Osc A e Osc B -->
+                <div class="col-md-6">
+                  <h6>Oscillatore A</h6>
+                  <div class="control-group">
+                    <label for="oscAType">Tipo</label>
+                    <select id="oscAType" class="form-select">
+                      <option value="sine">Sine</option>
+                      <option value="square">Square</option>
+                      <option value="sawtooth" selected>Sawtooth</option>
+                      <option value="triangle">Triangle</option>
+                    </select>
+                  </div>
+                  <div class="control-group">
+                    <label for="oscADetune">Detune (<span id="oscADetuneVal">0</span> cents)</label>
+                    <input type="range" id="oscADetune" min="-100" max="100" step="1" value="0" class="form-range">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <h6>Oscillatore B</h6>
+                  <div class="control-group">
+                    <label for="oscBType">Tipo</label>
+                    <select id="oscBType" class="form-select">
+                      <option value="sine">Sine</option>
+                      <option value="square" selected>Square</option>
+                      <option value="sawtooth">Sawtooth</option>
+                      <option value="triangle">Triangle</option>
+                    </select>
+                  </div>
+                  <div class="control-group">
+                    <label for="oscBDetune">Detune (<span id="oscBDetuneVal">0</span> cents)</label>
+                    <input type="range" id="oscBDetune" min="-100" max="100" step="1" value="0" class="form-range">
+                  </div>
+                </div>
+                <!-- Mix Oscillatori -->
+                <div class="col-md-12 mt-3">
+                  <div class="control-group">
+                    <label for="oscMix">Mix Oscillatori (<span id="oscMixVal">50</span>%)</label>
+                    <input type="range" id="oscMix" min="0" max="100" step="1" value="50" class="form-range">
+                  </div>
+                </div>
+              </div>
+              <!-- Envelope per il suono globale -->
+              <div class="row mt-4">
+                <div class="col-md-3 control-group">
+                  <label for="envAttack">Attack (<span id="envAttackVal">0.05</span>s)</label>
+                  <input type="range" id="envAttack" min="0.001" max="1" step="0.01" value="0.05" class="form-range">
+                </div>
+                <div class="col-md-3 control-group">
+                  <label for="envDecay">Decay (<span id="envDecayVal">0.2</span>s)</label>
+                  <input type="range" id="envDecay" min="0.01" max="2" step="0.01" value="0.2" class="form-range">
+                </div>
+                <div class="col-md-3 control-group">
+                  <label for="envSustain">Sustain (<span id="envSustainVal">0.5</span>)</label>
+                  <input type="range" id="envSustain" min="0" max="1" step="0.01" value="0.5" class="form-range">
+                </div>
+                <div class="col-md-3 control-group">
+                  <label for="envRelease">Release (<span id="envReleaseVal">0.5</span>s)</label>
+                  <input type="range" id="envRelease" min="0.1" max="3" step="0.1" value="0.5" class="form-range">
+                </div>
+              </div>
+              <!-- Filtro -->
+              <div class="row mt-4">
+                <div class="col-md-6 control-group">
+                  <label for="filterCutoff">Filtro Cutoff (<span id="filterCutoffVal">1000</span> Hz)</label>
+                  <input type="range" id="filterCutoff" min="100" max="5000" step="10" value="1000" class="form-range">
+                </div>
+                <div class="col-md-6 control-group">
+                  <label for="filterResonance">Resonance (<span id="filterResonanceVal">1</span>)</label>
+                  <input type="range" id="filterResonance" min="0.1" max="10" step="0.1" value="1" class="form-range">
+                </div>
+              </div>
+              <!-- LFO -->
+              <div class="row mt-4">
+                <div class="col-md-4 control-group">
+                  <label for="lfoRate">LFO Rate (<span id="lfoRateVal">5</span> Hz)</label>
+                  <input type="range" id="lfoRate" min="0.1" max="20" step="0.1" value="5" class="form-range">
+                </div>
+                <div class="col-md-4 control-group">
+                  <label for="lfoDepth">LFO Depth (<span id="lfoDepthVal">50</span>%)</label>
+                  <input type="range" id="lfoDepth" min="0" max="100" step="1" value="50" class="form-range">
+                </div>
+                <div class="col-md-4 control-group">
+                  <label for="lfoTarget">LFO Target</label>
+                  <select id="lfoTarget" class="form-select">
+                    <option value="none" selected>Nessuno</option>
+                    <option value="pitch">Pitch</option>
+                    <option value="volume">Volume</option>
+                    <option value="filter">Filtro Cutoff</option>
+                  </select>
+                </div>
+              </div>
+              <!-- Effetti: Delay e Reverb -->
+              <div class="row mt-4">
+                <div class="col-md-6 control-group">
+                  <label for="delayTime">Delay Time (<span id="delayTimeVal">0.25</span>s)</label>
+                  <input type="range" id="delayTime" min="0.1" max="1" step="0.05" value="0.25" class="form-range">
+                </div>
+                <div class="col-md-6 control-group">
+                  <label for="reverbDecay">Reverb Decay (<span id="reverbDecayVal">2</span>s)</label>
+                  <input type="range" id="reverbDecay" min="1" max="5" step="0.1" value="2" class="form-range">
+                </div>
+              </div>
+              <!-- Pulsante Reset controlli -->
+              <div class="mt-3 text-center">
+                <button id="resetAll" class="btn btn-outline-secondary">Reset Tutto</button>
+              </div>
+            </div>
+          </div>
+          <!-- Tastiera Virtuale -->
+          <div class="card shadow-sm">
+            <div class="card-header">
+              <h5>Tastiera Virtuale</h5>
+            </div>
+            <div class="card-body">
+              <div id="virtualKeyboard">
+                <!-- 8 chiavi con mappatura: a, s, d, f, g, h, j, k -->
+                <button class="key btn btn-light" data-note="C4" data-key="a">C</button>
+                <button class="key btn btn-light" data-note="D4" data-key="s">D</button>
+                <button class="key btn btn-light" data-note="E4" data-key="d">E</button>
+                <button class="key btn btn-light" data-note="F4" data-key="f">F</button>
+                <button class="key btn btn-light" data-note="G4" data-key="g">G</button>
+                <button class="key btn btn-light" data-note="A4" data-key="h">A</button>
+                <button class="key btn btn-light" data-note="B4" data-key="j">B</button>
+                <button class="key btn btn-light" data-note="C5" data-key="k">C</button>
+              </div>
+            </div>
+          </div>
+          <p class="mt-3 text-center">Suona con il mouse sulle chiavi oppure usa la tastiera del computer (a, s, d, f, g, h, j, k).</p>
+        </div>
+      </div>
+      
+      <!-- Preset Tab -->
+      <div class="tab-pane fade" id="presetTabContent" role="tabpanel" aria-labelledby="presetTabBtn">
+        <div class="container my-4">
+          <h3 class="mb-4 text-center">Preset Variegati</h3>
+          <div id="presetContainer" class="row">
+            <!-- Preset saranno generati dinamicamente -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sequencer Tab -->
+      <div class="tab-pane fade" id="seqTabContent" role="tabpanel" aria-labelledby="seqTabBtn">
+        <div class="container my-4">
+          <h3 class="mb-4 text-center">Sequencer Step‑Based</h3>
+          <div class="card shadow-sm">
+            <div class="card-header text-center">
+              <h5>Step Sequencer</h5>
+            </div>
+            <div class="card-body">
+              <div id="sequencerGrid" class="sequencer-grid mb-3">
+                <!-- 16 celle per il sequencer -->
+                <div class="sequencer-cell" data-step="0"></div>
+                <div class="sequencer-cell" data-step="1"></div>
+                <div class="sequencer-cell" data-step="2"></div>
+                <div class="sequencer-cell" data-step="3"></div>
+                <div class="sequencer-cell" data-step="4"></div>
+                <div class="sequencer-cell" data-step="5"></div>
+                <div class="sequencer-cell" data-step="6"></div>
+                <div class="sequencer-cell" data-step="7"></div>
+                <div class="sequencer-cell" data-step="8"></div>
+                <div class="sequencer-cell" data-step="9"></div>
+                <div class="sequencer-cell" data-step="10"></div>
+                <div class="sequencer-cell" data-step="11"></div>
+                <div class="sequencer-cell" data-step="12"></div>
+                <div class="sequencer-cell" data-step="13"></div>
+                <div class="sequencer-cell" data-step="14"></div>
+                <div class="sequencer-cell" data-step="15"></div>
+              </div>
+              <!-- Controlli Sequencer -->
+              <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 sequencer-controls">
+                <div>
+                  <label for="tempoRange" class="form-label">Tempo (<span id="tempoVal">120</span> BPM)</label>
+                  <input type="range" id="tempoRange" min="60" max="200" step="1" value="120" class="form-range">
+                </div>
+                <div>
+                  <label for="seqSound" class="form-label">Suono Sequencer</label>
+                  <select id="seqSound" class="form-select">
+                    <option value="kick" selected>Kick</option>
+                    <option value="snare">Snare</option>
+                    <option value="hihat">HiHat</option>
+                    <option value="synth">Synth Lead</option>
+                  </select>
+                </div>
+                <button id="playSequencer" class="btn btn-success"><i class="fas fa-play"></i> Play</button>
+                <button id="stopSequencer" class="btn btn-danger"><i class="fas fa-stop"></i> Stop</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div> <!-- fine tab-content -->
+  </div> <!-- fine container tab -->
+  
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container text-center">
+      <p>&copy; <span id="copyrightYear"></span> Bocaletto Luca - Tutti i diritti riservati</p>
+    </div>
+  </footer>
+  
+  <!-- SCRIPT: Bootstrap e Tone.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
+  
+  <!-- SCRIPT PRINCIPALE -->
+  <script>
+    /* ----- Inizializzazione Generale ----- */
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("copyrightYear").textContent = new Date().getFullYear();
+    });
+    
+    /* ========= SYNTH SECTION ========= */
+    
+    // Creazione di un PolySynth avanzato che combina due oscillatori
+    let oscASynth = new Tone.Synth({ oscillator: { type: document.getElementById('oscAType')?.value || 'sine' }});
+    let oscBSynth = new Tone.Synth({ oscillator: { type: document.getElementById('oscBType')?.value || 'square' }});
+    
+    // Un semplice mixer per bilanciare i due oscillatori
+    let oscAMix = new Tone.Gain(0.5).toDestination(); // 50%
+    let oscBMix = new Tone.Gain(0.5);
+    oscBSynth.connect(oscBMix);
+    oscBMix.toDestination();
+    
+    // Un polySynth per le note (la somma degli oscillatori)
+    let advancedSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+    // Per semplicità useremo advancedSynth come riferimento che verrà aggiornato dai controlli
+    // (La fusione dei due oscillatori verrà simulata regolando i parametri in advancedSynth)
+    
+    // Filtro globale
+    let filter = new Tone.Filter(document.getElementById('filterCutoff')?.value || 1000, "lowpass");
+    filter.resonance.value = document.getElementById('filterResonance')?.value || 1;
+    
+    // Collegamento: advancedSynth -> filter -> Destination
+    advancedSynth.disconnect();
+    advancedSynth.connect(filter);
+    filter.toDestination();
+    
+    // Delay ed effetto Reverb (usando Tone.FeedbackDelay e Tone.Freeverb)
+    let delay = new Tone.FeedbackDelay(document.getElementById('delayTime')?.value || 0.25, 0.4).toDestination();
+    let reverb = new Tone.Freeverb(document.getElementById('reverbDecay')?.value || 2);
+    reverb.dampening.value = 400;
+    reverb.roomSize.value = 0.5;
+    // Collegamento del filtro all’effetto (opzionale, in serie o parallelo)
+    filter.connect(delay);
+    filter.connect(reverb);
+    
+    // LFO per modulazione
+    let lfo = new Tone.LFO({
+      frequency: document.getElementById('lfoRate')?.value || 5, 
+      min: -50, max: 50
+    }).start();
+    // Collega il LFO al target scelto
+    function updateLfoTarget() {
+      let target = document.getElementById('lfoTarget').value;
+      // Disconnette il LFO da tutte le destinazioni
+      lfo.disconnect();
+      if(target === "pitch") {
+        lfo.connect(advancedSynth, 0, 0); // per modulare la frequenza (sintetico)
+      } else if(target === "volume") {
+        lfo.connect(advancedSynth.volume);
+      } else if(target === "filter") {
+        lfo.connect(filter.frequency);
+      }
+    }
+    updateLfoTarget();
+    document.getElementById('lfoTarget').addEventListener('change', updateLfoTarget);
+    document.getElementById('lfoRate').addEventListener('input', function() {
+      lfo.frequency.value = this.value;
+      document.getElementById('lfoRateVal').textContent = this.value;
+    });
+    document.getElementById('lfoDepth').addEventListener('input', function() {
+      // Per semplicità, se il target è pitch, modula di ± questo valore
+      document.getElementById('lfoDepthVal').textContent = this.value;
+    });
+    
+    // Funzione per aggiornare i controlli del synth avanzato
+    function updateAdvancedSynthParameters() {
+      // Oscillatori
+      let oscAType = document.getElementById('oscAType').value;
+      let oscBType = document.getElementById('oscBType').value;
+      let oscADetune = parseFloat(document.getElementById('oscADetune').value);
+      let oscBDetune = parseFloat(document.getElementById('oscBDetune').value);
+      let oscMix = parseFloat(document.getElementById('oscMix').value) / 100;
+      
+      // In questa demo, aggiorniamo direttamente advancedSynth
+      let oscType = (oscMix >= 0.5) ? oscBType : oscAType;
+      advancedSynth.set({
+        oscillator: { type: oscType }
+      });
+      // (Una fusione reale richiederebbe una strada multicanale, semplifichiamo.)
+      
+      // Envelope globale
+      let envAttack = parseFloat(document.getElementById('envAttack').value);
+      let envDecay = parseFloat(document.getElementById('envDecay').value);
+      let envSustain = parseFloat(document.getElementById('envSustain').value);
+      let envRelease = parseFloat(document.getElementById('envRelease').value);
+      advancedSynth.set({
+        envelope: { attack: envAttack, decay: envDecay, sustain: envSustain, release: envRelease }
+      });
+      document.getElementById('envAttackVal').textContent = envAttack;
+      document.getElementById('envDecayVal').textContent = envDecay;
+      document.getElementById('envSustainVal').textContent = envSustain;
+      document.getElementById('envReleaseVal').textContent = envRelease;
+      
+      // Filtro
+      let filterCutoff = parseFloat(document.getElementById('filterCutoff').value);
+      let filterResonance = parseFloat(document.getElementById('filterResonance').value);
+      filter.frequency.value = filterCutoff;
+      filter.resonance.value = filterResonance;
+      document.getElementById('filterCutoffVal').textContent = filterCutoff;
+      document.getElementById('filterResonanceVal').textContent = filterResonance;
+      
+      // Effetti Delay e Reverb
+      let delayTime = parseFloat(document.getElementById('delayTime').value);
+      delay.delayTime.value = delayTime;
+      document.getElementById('delayTimeVal').textContent = delayTime;
+      
+      let reverbDecay = parseFloat(document.getElementById('reverbDecay').value);
+      reverb.roomSize.value = reverbDecay / 5; // scaling arbitrario
+      document.getElementById('reverbDecayVal').textContent = reverbDecay;
+      
+      // LFO (già aggiornato in base ai controlli)
+    }
+    
+    // Collegamento di tutti i controlli del synth avanzato
+    ['oscAType','oscBType','oscADetune','oscBDetune','oscMix',
+     'envAttack','envDecay','envSustain','envRelease',
+     'filterCutoff','filterResonance','delayTime','reverbDecay'
+    ].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateAdvancedSynthParameters);
+      document.getElementById(id).addEventListener('change', updateAdvancedSynthParameters);
+    });
+    // Pulsante di Reset
+    document.getElementById('resetAll').addEventListener('click', function(){
+      document.getElementById('oscAType').value = "sine";
+      document.getElementById('oscBType').value = "square";
+      document.getElementById('oscADetune').value = 0;
+      document.getElementById('oscBDetune').value = 0;
+      document.getElementById('oscMix').value = 50;
+      document.getElementById('envAttack').value = 0.05;
+      document.getElementById('envDecay').value = 0.2;
+      document.getElementById('envSustain').value = 0.5;
+      document.getElementById('envRelease').value = 0.5;
+      document.getElementById('filterCutoff').value = 1000;
+      document.getElementById('filterResonance').value = 1;
+      document.getElementById('delayTime').value = 0.25;
+      document.getElementById('reverbDecay').value = 2;
+      updateAdvancedSynthParameters();
+    });
+    
+    updateAdvancedSynthParameters(); // inizializzazione
+    
+    // Tastiera Virtuale (mouse)
+    const virtualKeys = document.querySelectorAll('#virtualKeyboard .key');
+    virtualKeys.forEach(key => {
+      key.addEventListener('mousedown', function() {
+        const note = this.getAttribute('data-note');
+        Tone.start();
+        advancedSynth.triggerAttack(note);
+        this.classList.add('active');
+      });
+      key.addEventListener('mouseup', function() {
+        const note = this.getAttribute('data-note');
+        advancedSynth.triggerRelease(note);
+        this.classList.remove('active');
+      });
+      key.addEventListener('mouseleave', function() {
+        const note = this.getAttribute('data-note');
+        advancedSynth.triggerRelease(note);
+        this.classList.remove('active');
+      });
+    });
+    
+    // Mappatura della tastiera del computer per il synth avanzato
+    const keyMapping = {
+      'a': 'C4', 'w': 'C#4', 's': 'D4', 'e': 'D#4', 'd': 'E4',
+      'f': 'F4', 't': 'F#4', 'g': 'G4', 'y': 'G#4', 'h': 'A4',
+      'u': 'A#4', 'j': 'B4', 'k': 'C5'
+    };
+    let activeKeys = new Set();
+    document.addEventListener('keydown', function(e) {
+      let key = e.key.toLowerCase();
+      if(keyMapping[key] && !activeKeys.has(key)) {
+        Tone.start();
+        advancedSynth.triggerAttack(keyMapping[key]);
+        activeKeys.add(key);
+        let vk = document.querySelector(`#virtualKeyboard .key[data-key="${key}"]`);
+        if(vk) vk.classList.add('active');
+      }
+    });
+    document.addEventListener('keyup', function(e) {
+      let key = e.key.toLowerCase();
+      if(keyMapping[key]) {
+        advancedSynth.triggerRelease(keyMapping[key]);
+        activeKeys.delete(key);
+        let vk = document.querySelector(`#virtualKeyboard .key[data-key="${key}"]`);
+        if(vk) vk.classList.remove('active');
+      }
+    });
+    
+    /* ========= PRESET SECTION ========= */
+    // Array di preset avanzati, con parametri più curati e "fedeli"
+    let presets = [
+      { name: "Bright Lead", oscA: "sawtooth", oscB: "square", detuneA: 0, detuneB: 10, mix: 60,
+        attack: 0.01, decay: 0.3, sustain: 0.6, release: 0.4, cutoff: 1500, resonance: 2,
+        delay: 0.2, reverb: 1.8 },
+      { name: "Deep Bass", oscA: "sine", oscB: "sine", detuneA: 0, detuneB: 0, mix: 50,
+        attack: 0.05, decay: 0.4, sustain: 0.7, release: 0.5, cutoff: 800, resonance: 1,
+        delay: 0.15, reverb: 1.5 },
+      { name: "Ambient Pad", oscA: "triangle", oscB: "triangle", detuneA: 5, detuneB: -5, mix: 50,
+        attack: 0.5, decay: 1, sustain: 0.8, release: 1.5, cutoff: 1200, resonance: 1.5,
+        delay: 0.5, reverb: 2.5 },
+      { name: "Funky Brass", oscA: "square", oscB: "sawtooth", detuneA: 0, detuneB: 20, mix: 70,
+        attack: 0.02, decay: 0.25, sustain: 0.5, release: 0.3, cutoff: 1800, resonance: 2.2,
+        delay: 0.3, reverb: 1.8 },
+      { name: "Vintage Moog", oscA: "sawtooth", oscB: "sawtooth", detuneA: 0, detuneB: 0, mix: 50,
+        attack: 0.03, decay: 0.35, sustain: 0.55, release: 0.45, cutoff: 1000, resonance: 1.8,
+        delay: 0.25, reverb: 2.0 }
+    ];
+    
+    // Popola la sezione Preset
+    const presetContainer = document.getElementById('presetContainer');
+    presets.forEach((p, i) => {
+      let col = document.createElement("div");
+      col.className = "col-md-4";
+      col.innerHTML = `
+        <div class="card preset-card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">${p.name}</h5>
+            <p class="card-text">
+              Osc A: ${p.oscA}, Osc B: ${p.oscB}<br>
+              Envelope: Attack ${p.attack}s, Decay ${p.decay}s, Sustain ${p.sustain}, Release ${p.release}s<br>
+              Filtro: Cutoff ${p.cutoff} Hz, Resonance ${p.resonance}<br>
+              Delay: ${p.delay}s, Reverb: ${p.reverb}s
+            </p>
+            <button class="btn btn-primary preset-btn" data-index="${i}">
+              <i class="fas fa-music"></i> Carica Preset
+            </button>
+          </div>
+        </div>
+      `;
+      presetContainer.appendChild(col);
+    });
+    
+    // Caricamento preset al click: aggiorna tutti i controlli
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', function(){
+        let idx = this.getAttribute('data-index');
+        let preset = presets[idx];
+        document.getElementById('oscAType').value = preset.oscA;
+        document.getElementById('oscBType').value = preset.oscB;
+        document.getElementById('oscADetune').value = preset.detuneA;
+        document.getElementById('oscBDetune').value = preset.detuneB;
+        document.getElementById('oscMix').value = preset.mix;
+        document.getElementById('envAttack').value = preset.attack;
+        document.getElementById('envDecay').value = preset.decay;
+        document.getElementById('envSustain').value = preset.sustain;
+        document.getElementById('envRelease').value = preset.release;
+        document.getElementById('filterCutoff').value = preset.cutoff;
+        document.getElementById('filterResonance').value = preset.resonance;
+        document.getElementById('delayTime').value = preset.delay;
+        document.getElementById('reverbDecay').value = preset.reverb;
+        updateAdvancedSynthParameters();
+        // Porta al tab Synth
+        let tab = new bootstrap.Tab(document.querySelector('#synthTabBtn'));
+        tab.show();
+      });
+    });
+    
+    /* ========= SEQUENCER SECTION ========= */
+    let sequencerSteps = new Array(16).fill(false);
+    const seqCells = document.querySelectorAll('#sequencerGrid .sequencer-cell');
+    seqCells.forEach(cell => {
+      cell.addEventListener('click', function(){
+        let step = parseInt(this.getAttribute('data-step'));
+        sequencerSteps[step] = !sequencerSteps[step];
+        this.classList.toggle('active');
+      });
+    });
+    
+    // Prepariamo diversi strumenti per il sequencer
+    let kickSynth = new Tone.MembraneSynth({ envelope: { attack: 0.001, decay: 0.3, sustain: 0 } }).toDestination();
+    let snareSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.005, decay: 0.2, sustain: 0 } }).toDestination();
+    let hihatSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 } }).toDestination();
+    let leadSynth = advancedSynth; // già definito
+    
+    // Funzione per riprodurre lo step in base al suono selezionato
+    function playStep(time, step) {
+      let soundChoice = document.getElementById('seqSound').value;
+      if(sequencerSteps[step]) {
+        if(soundChoice === "kick") {
+          kickSynth.triggerAttackRelease("C2", "8n", time);
+        } else if(soundChoice === "snare") {
+          snareSynth.triggerAttackRelease("8n", time);
+        } else if(soundChoice === "hihat") {
+          hihatSynth.triggerAttackRelease("8n", time);
+        } else if(soundChoice === "synth") {
+          leadSynth.triggerAttackRelease("C4", "8n", time);
+        }
+      }
+    }
+    
+    // Creazione della sequenza Tone.js: 16 step, step “16n”
+    let sequence = new Tone.Sequence((time, step) => {
+      playStep(time, step);
+    }, Array.from({length: 16}, (_, i) => i), "16n");
+    
+    // Controllo BPM del Sequencer
+    const tempoRange = document.getElementById('tempoRange');
+    const tempoVal = document.getElementById('tempoVal');
+    tempoRange.addEventListener('input', function(){
+      Tone.Transport.bpm.value = parseInt(this.value);
+      tempoVal.textContent = this.value;
+    });
+    Tone.Transport.bpm.value = parseInt(tempoRange.value);
+    
+    // Pulsanti Play e Stop del Sequencer
+    document.getElementById('playSequencer').addEventListener('click', async function(){
+      await Tone.start(); // assicura interazione utente
+      Tone.Transport.start();
+      sequence.start();
+    });
+    document.getElementById('stopSequencer').addEventListener('click', function(){
+      Tone.Transport.stop();
+      sequence.stop();
+    });
+  
+  </script>
+</body>
+</html>

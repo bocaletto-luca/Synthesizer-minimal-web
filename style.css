@@ -1,0 +1,66 @@
+/* Stili globali */
+body {
+  font-family: 'Open Sans', sans-serif;
+  background: #f2f2f2;
+  margin: 0;
+  padding: 0;
+}
+
+/* HEADER */
+.site-header {
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  color: #fff;
+  padding: 40px 20px;
+  text-align: center;
+}
+.site-header h1 {
+  font-family: 'Roboto', sans-serif;
+  font-size: 3rem;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+  text-shadow: 4px 4px 0 rgba(0,0,0,0.2), 8px 8px 0 rgba(0,0,0,0.15);
+  transform: perspective(500px) rotateX(2deg) rotateY(2deg);
+}
+.site-header h4 {
+  font-size: 1.5rem;
+  margin-bottom: 0;
+}
+
+/* FOOTER */
+.site-footer {
+  background: #222;
+  color: #fff;
+  padding: 15px 0;
+  text-align: center;
+}
+.fixed-bottom {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+/* CARD degli effetti e preset */
+.effect-card {
+  margin-bottom: 20px;
+}
+.effect-card .card-title {
+  font-weight: 700;
+}
+
+/* Tastiera Virtuale (sintetizzatore) */
+#keyboard .key {
+  min-width: 50px;
+  margin: 2px;
+  flex: 1 0 60px;
+}
+
+/* Regolazioni responsive */
+@media (max-width: 768px) {
+  .site-header h1 {
+    font-size: 2.5rem;
+  }
+  .site-header h4 {
+    font-size: 1.2rem;
+  }
+}
